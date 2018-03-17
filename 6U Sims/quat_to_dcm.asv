@@ -1,0 +1,4 @@
+function attitude = quat_to_dcm(epsilon, eta)
+
+a11 = eta^2 + epsilon(1)^2 - epsilon(2)^2 - epsilon(3)^2;
+a12 = 2*(epsilon(1)*epsilon(2) + )
