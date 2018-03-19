@@ -6,4 +6,4 @@ I = diag([113209925.22, 157664078.25, 178851595.39])/(10^6);
 Iw = diag([1.67, 1.67, 1.67])/(10^3);
 
 %Is is the total moment of inertia including the wheel
-Is = I + Iw;
+Is = I + Iw - Iw(3,3);

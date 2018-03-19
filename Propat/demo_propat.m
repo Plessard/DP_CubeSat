@@ -34,7 +34,7 @@ dfra = time_to_dayf (10, 20, 0);    % UTC time in (hour, minute, sec)
 % Propagation time in seconds:
 tstart = 0;     % initial time (sec)
 tstep = 0.5;    % step time (sec)
-tend = 10800;     % end time (10 minutes)
+tend = 200;     % end time (10 minutes)
 
 % Inertia matrix of axis-symetric rigid body:
 iner = [8 0 0; 0 8 0; 0 0 12];      % in kg*m*m
