@@ -1,17 +1,27 @@
-clear;
 orbit_parameters;
 date_input;
 prop_time;
 sat_constants;
 
 % Initial Conditions for ode45
-omega_sat = [0.1 0.1 0.1];
+omega_sat = [0.1 0.4 0.03];
 omega_wheel = 0;
 epsilon = [0 0 0];
 eta = 1;
 
 % Initial Vectors
-initial_vectors;
+time = tstart;          % to store time
+orbit = stat';          % Orbit elements (state vector)
+keorb = kepel';         % Orbit elements (keplerian)
+earth_field = [0 0 0]';
+grav_torque = [0 0 0]';
+earth_magnitude = 0;
+earth_field_body = 0;
+w_sat = omega_sat';
+Time = tstart;
+w_sat_plot = [];
+sun_body_vector = [0 0 0]';
+sun_eci_vector = [0 0 0]';
 
 % Reference values
 attitude_ref = [0 0 0 1]';
@@ -32,9 +42,9 @@ for t = tstart:tstep:tend
     t2 = t+tstep;
     tdiv = 10;
     tspan = linspace(t1,t2,tdiv);
-
+    
     if t2 <= tend
-        [T, x_out] = ode45('eq_motion', tspan, IC,skip,L,T_bdot,t_wheel);
+        [T, x_out] = ode45('eq_motion', tspan, IC);
         post_processing; 
     end
     
@@ -52,7 +62,6 @@ for t = tstart:tstep:tend
     angle = gst(mjd, dfra+t); % angle [rad] between from terrestial to inertial frame
     earth_field_inertial = earth_field_terrestial'*rotmaz(-angle)';
     earth_field_magnitude = sqrt(earth_field_inertial(1)^2 + earth_field_inertial(2)^2 + earth_field_inertial(3)^2);
-    temp_earth_field_b = earth_field_body;
     earth_field_body = attitude*earth_field_inertial';
     % calculate sun position in ECI frame
     sun_eci = sun_dir(mjd,dfra);
@@ -66,42 +75,12 @@ for t = tstart:tstep:tend
     % TRIAD algorithm to determine attitude based on sensor measurements
     % attitude_measured = triad(attitude, sun_eci, sun_body,earth_field_inertial',earth_field_body);
     
-    % Total Disturbance Torque in the B-Frame
-    L = earth_field_body + torque_grav; % this torque needs to be countered by a control torque
-    % Geometric control decomposition - Forbes Method
-    b_hat = earth_field_body/norm(earth_field_body);
-%     u_perp = (cross_matrix(b_hat))' * cross_matrix(b_hat) * u;
-%     u_parr = b_hat * b_hat' * u;
-
-        k = 13700000;
-        % T_bdot = b_dot(k,earth_field_body,temp_earth_field_b,omega_sat',tstep);
-        [T_bdot,dipole_bdot] = b_dot(k,earth_field_body,omega_sat');
-        t_wheel = [0;0;0];
-        
-%     if abs(omega_sat(1)) > 0.01 && abs(omega_sat(2)) > 0.01 && abs(omega_sat(3)) > 0.01
-%         k = 250000000;
-%         T_bdot = b_dot(k,earth_field_body,temp_earth_field_b,omega_sat',tstep);
-%         t_wheel = [0;0;0];
-%         % t_torquers = [0;0;0];
-%     else 
-%         t_wheel = (earth_field_body' * L)/(earth_field_body(2))*[0;1;0];
-%         % t_torquers = (cross_matrix(b_hat))'*cross_matrix(b_hat)*(-t_wheel + L);
-%         T_bdot = [0;0;0];
-%     end
-   
-    
-    % Calculate max possible torque produced by torquers at each time interval
-    % tm_max = cross_matrix(D)*earth_field_body;
-    
-    % Magnetic Dipole Calculation
-    % D = (cross_matrix(earth_field_body) * t_torquers)/(earth_field_body' * earth_field_body);
-    
+  
     % Store data to be plotted
     time = cat(2, time, t);
     orbit = cat(2, orbit, stat');
     keorb = cat(2, keorb, kep2');
     earth_field = cat(2,earth_field,earth_field_inertial'); 
-    b_field_body = cat(2,b_field_body,earth_field_body);
     earth_magnitude = cat(2,earth_magnitude, earth_field_magnitude);
     w_sat = cat(2, w_sat, omega_sat');
     w_sat_plot = cat(2, w_sat_plot, omega_sat_plot');
@@ -109,35 +88,9 @@ for t = tstart:tstep:tend
     grav_torque = cat(2,grav_torque,torque_grav);
     sun_body_vector = cat(2,sun_body_vector, sun_body);
     sun_eci_vector = cat(2,sun_eci_vector, sun_eci);
-    
-%     torque_wheel = cat(2,torque_wheel,t_wheel);
-%     torque_torquers = cat(2,torque_torquers, t_torquers);
-    Dipole= cat(2,Dipole,dipole_bdot);
-    
-%     determinant = cat(2,determinant,deter);
-%     rot_energy = cat(2,rot_energy,Trot);
-%     quaternion_check = cat(2,quaternion_check,f_quat);
-    
-
 end
-plot(time,Dipole);
-% figure(1);
-% plot(time,torque_wheel);
-% xlabel('wheel');
-% 
-% figure(2);
-% plot(time,torque_torquers);
-% xlabel('torquers');
+
+
 plotting;
-% figure(1);
-% plot(time,determinant);
-% xlabel('determinant');
-% 
-% figure(2);
-% plot(time,quaternion_check);
-% xlabel('quat');
-% 
-% figure(3);
-% plot(time,rot_energy);
-% xlabel('energy');
+
 

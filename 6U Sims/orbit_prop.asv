@@ -5,7 +5,7 @@ prop_time;
 sat_constants;
 
 % Initial Conditions for ode45
-omega_sat = [0.1 0.1 0.1];
+omega_sat = [0.1 0.2 0.3];
 omega_wheel = 0;
 epsilon = [0 0 0];
 eta = 1;
@@ -67,27 +67,22 @@ for t = tstart:tstep:tend
     % attitude_measured = triad(attitude, sun_eci, sun_body,earth_field_inertial',earth_field_body);
     
     % Total Disturbance Torque in the B-Frame
-    L = earth_field_body + torque_grav; % this torque needs to be countered by a control torque
+    L = 0.2*earth_field_body + torque_grav; % this torque needs to be countered by a control torque
     % Geometric control decomposition - Forbes Method
     b_hat = earth_field_body/norm(earth_field_body);
 %     u_perp = (cross_matrix(b_hat))' * cross_matrix(b_hat) * u;
 %     u_parr = b_hat * b_hat' * u;
 
-        k = 13700000;
-        % T_bdot = b_dot(k,earth_field_body,temp_earth_field_b,omega_sat',tstep);
-        [T_bdot,dipole_bdot] = b_dot(k,earth_field_body,omega_sat');
+    if abs(omega_sat(1)) > 0.01 && abs(omega_sat(2)) > 0.01 && abs(omega_sat(3)) > 0.01
+        k = 1000000000000;
+        T_bdot = b_dot(k,earth_field_body,temp_earth_field_b,omega_sat',tstep);
         t_wheel = [0;0;0];
-        
-%     if abs(omega_sat(1)) > 0.01 && abs(omega_sat(2)) > 0.01 && abs(omega_sat(3)) > 0.01
-%         k = 250000000;
-%         T_bdot = b_dot(k,earth_field_body,temp_earth_field_b,omega_sat',tstep);
-%         t_wheel = [0;0;0];
-%         % t_torquers = [0;0;0];
-%     else 
-%         t_wheel = (earth_field_body' * L)/(earth_field_body(2))*[0;1;0];
-%         % t_torquers = (cross_matrix(b_hat))'*cross_matrix(b_hat)*(-t_wheel + L);
-%         T_bdot = [0;0;0];
-%     end
+        % t_torquers = [0;0;0];
+    else 
+        t_wheel = (earth_field_body' * L)/(earth_field_body(2))*[0;1;0];
+        % t_torquers = (cross_matrix(b_hat))'*cross_matrix(b_hat)*(-t_wheel + L);
+        T_bdot = [0;0;0];
+    end
    
     
     % Calculate max possible torque produced by torquers at each time interval
@@ -112,7 +107,7 @@ for t = tstart:tstep:tend
     
 %     torque_wheel = cat(2,torque_wheel,t_wheel);
 %     torque_torquers = cat(2,torque_torquers, t_torquers);
-    Dipole= cat(2,Dipole,dipole_bdot);
+%     Dipole= cat(2,Dipole,D);
     
 %     determinant = cat(2,determinant,deter);
 %     rot_energy = cat(2,rot_energy,Trot);
@@ -120,7 +115,6 @@ for t = tstart:tstep:tend
     
 
 end
-plot(time,Dipole);
 % figure(1);
 % plot(time,torque_wheel);
 % xlabel('wheel');

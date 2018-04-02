@@ -1,0 +1,11 @@
+function B_torque = b_dot(k, b1,b2, w, tstep)
+
+%Approximation of b_dot
+b_dot_approx = cross_matrix(b1,
+m_tumble = -k * 
+B_torque = cross_matrix(-k*cross_matrix(b1)*w)*b1;
+
+% Actually derivative of b-field
+
+% b_dot = (b1 - b2)/tstep;
+% B_torque = -k * cross_matrix(b_dot) * b1;

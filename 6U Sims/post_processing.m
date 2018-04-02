@@ -11,6 +11,9 @@ omega_sat_plot = x_out(:,1:3);
 
 % attitude DCM
 attitude = quat_to_dcm(epsilon,eta);
+deter = det(attitude);
+Trot = 0.5 * omega_sat * Is * omega_sat';
+f_quat = epsilon*epsilon' + eta^2 -1;
 
 % energy and quaternion constraint check
 % for i=1:length(x_out)

@@ -26,34 +26,23 @@
 % xlabel('Time (s)')
 % ylabel('B-field magnitude ECI(T)');
 % 
-figure(6)
-plot(Time(2:end), w_sat_plot);
-xlabel('Time (s)')
-ylabel('Angular velocity (rad/s)')
-title('Angular velocity')
+% figure(6)
+% plot(Time(2:end), w_sat_plot);
+% xlabel('Time (s)')
+% ylabel('Angular velocity (rad/s)')
+% title('Angular velocity')
 
 % figure(7)
 % plot(time,grav_torque);
 % xlabel('Time (s)');
 % ylabel('Gravity Gradient Torque');
 % 
-% figure(8)
-% plot(time,sun_eci_vector);
-% xlabel('Time (s)');
-% ylabel('Sun vector in ECI');
-% % 
-% figure(9);
-% plot(time,sun_body_vector);
-% xlabel('Time (s)');
-% ylabel('Sun vector in body frame');
+figure(8)
+plot(time,sun_eci_vector);
+xlabel('Time (s)');
+ylabel('Sun vector ECI');
 % 
-% figure(10);
-% subplot(2,1,1);
-% plot(time,sun_eci_vector);
-% xlabel('Time (s)');
-% ylabel('Sun vector ECI');
-% % 
-% subplot(2,1,2);
-% plot(time,sun_body_vector);
-% xlabel('Time (s)');
-% ylabel('Sun vector body frame');
+figure(9);
+plot(time,sun_body_vector);
+xlabel('Time (s)');
+ylabel('Sun vector body frame');
