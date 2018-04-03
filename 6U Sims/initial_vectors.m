@@ -23,6 +23,12 @@ Dipole= [0;0;0];
 t_wheel = [0;0;0];
 t_torquers = [0;0;0];
 
+EPSILON = [0;0;0;0];
+Triad = [0;0;0;0];
+
+Moment = [0;0;0];
+
+torque_out = [0;0;0];
 determinant = 1;
 rot_energy = 0;
 quaternion_check = 0;

@@ -11,17 +11,17 @@ omega_sat_plot = x_out(:,1:3);
 quaternion_actual = x_out(:,5:8)';
 
 quat_ref = [0;0;0;1];
-% for i=1:length(quaternion_actual)
-    % quaternion_plot(:,i) = quatmultiply(quaternion_actual(:,i)',quat_ref');
-% end
+for i=1:length(quaternion_actual)
+    quaternion_plot(:,i) = quatmultiply(quaternion_actual(:,i),quat_ref^())';
+end
 
 
 
 % attitude DCM
 attitude = quat_to_dcm(epsilon,eta);
-% deter = det(attitude);
-% Trot = 0.5 * omega_sat * Is * omega_sat';
-% f_quat = epsilon*epsilon' + eta^2 -1;
+deter = det(attitude);
+Trot = 0.5 * omega_sat * Is * omega_sat';
+f_quat = epsilon*epsilon' + eta^2 -1;
 
 % energy and quaternion constraint check
 % for i=1:length(x_out)

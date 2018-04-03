@@ -5,10 +5,12 @@ prop_time;
 sat_constants;
 
 % Initial Conditions for ode45
-omega_sat = [0.1 0.2 0.3];
+omega_sat = [0.016;0.005;-0.02];
 omega_wheel = 0;
-epsilon = [0 0 0];
-eta = 1;
+% epsilon = [0 0 0];
+% eta = 1;
+eta = 0.182574185835055;
+epsilon = [0.365148371670111;0.547722557505166;0.730296743340221];
 
 % Initial Vectors
 initial_vectors;
@@ -27,14 +29,18 @@ for t = tstart:tstep:tend
     
     % Initial conditions for ode45
     % See post_processing.m 
-    IC = [omega_sat omega_wheel epsilon eta]';       
+    IC = [omega_sat ;omega_wheel; epsilon eta];       
     t1 = t;
     t2 = t+tstep;
     tdiv = 10;
     tspan = linspace(t1,t2,tdiv);
-
+    
+    kp = 0.2;
+    kd = 0.15;
+    u = -kp*epsilon - kd*omega_sat;
+    
     if t2 <= tend
-        [T, x_out] = ode45('eq_motion', tspan, IC,skip,L,T_bdot,t_wheel);
+        [T, x_out] = ode45('eq_motion', tspan, IC,skip,L,T_bdot,t_wheel,u);
         post_processing; 
     end
     
@@ -64,25 +70,30 @@ for t = tstart:tstep:tend
     dfra = dfra + tstep;
     
     % TRIAD algorithm to determine attitude based on sensor measurements
-    % attitude_measured = triad(attitude, sun_eci, sun_body,earth_field_inertial',earth_field_body);
+    % quaternion_measured = triad(attitude, sun_eci, sun_body, earth_field_inertial',earth_field_body);
     
     % Total Disturbance Torque in the B-Frame
-    L = 0.2*earth_field_body + torque_grav; % this torque needs to be countered by a control torque
+    L = 0.001*earth_field_body + torque_grav; % this torque needs to be countered by a control torque
     % Geometric control decomposition - Forbes Method
     b_hat = earth_field_body/norm(earth_field_body);
 %     u_perp = (cross_matrix(b_hat))' * cross_matrix(b_hat) * u;
 %     u_parr = b_hat * b_hat' * u;
 
-    if abs(omega_sat(1)) > 0.01 && abs(omega_sat(2)) > 0.01 && abs(omega_sat(3)) > 0.01
-        k = 1000000000000;
-        T_bdot = b_dot(k,earth_field_body,temp_earth_field_b,omega_sat',tstep);
-        t_wheel = [0;0;0];
-        % t_torquers = [0;0;0];
-    else 
-        t_wheel = (earth_field_body' * L)/(earth_field_body(2))*[0;1;0];
-        % t_torquers = (cross_matrix(b_hat))'*cross_matrix(b_hat)*(-t_wheel + L);
-        T_bdot = [0;0;0];
-    end
+    k = 29000;
+    % T_bdot = b_dot(k,earth_field_body,temp_earth_field_b,omega_sat',tstep);
+    [T_bdot,dipole_bdot] = b_dot(k,earth_field_body,omega_sat');
+    % t_wheel = [0;0;0];
+        
+%     if abs(omega_sat(1)) > 0.01 && abs(omega_sat(2)) > 0.01 && abs(omega_sat(3)) > 0.01
+%         k = 250000000;
+%         T_bdot = b_dot(k,earth_field_body,temp_earth_field_b,omega_sat',tstep);
+%         t_wheel = [0;0;0];
+%         % t_torquers = [0;0;0];
+%     else 
+%         t_wheel = (earth_field_body' * L)/(earth_field_body(2))*[0;1;0];
+%         % t_torquers = (cross_matrix(b_hat))'*cross_matrix(b_hat)*(-t_wheel + L);
+%         T_bdot = [0;0;0];
+%     end
    
     
     % Calculate max possible torque produced by torquers at each time interval
@@ -91,6 +102,15 @@ for t = tstart:tstep:tend
     % Magnetic Dipole Calculation
     % D = (cross_matrix(earth_field_body) * t_torquers)/(earth_field_body' * earth_field_body);
     
+    % TRIAD algorithm to determine attitude based on sensor measurements
+    for i=1:length(quaternion_actual)
+        attitude_triad = quat_to_dcm(quaternion_actual(1:3,i),quaternion_actual(4,i));
+        Triad_out(:,i) = triad(attitude_triad, sun_eci, sun_body, earth_field_inertial',earth_field_body);
+    end
+    
+    epsilon = Triad_out(2:4,end)';
+    eta = Triad_out(1,end)';
+
     % Store data to be plotted
     time = cat(2, time, t);
     orbit = cat(2, orbit, stat');
@@ -107,14 +127,19 @@ for t = tstart:tstep:tend
     
 %     torque_wheel = cat(2,torque_wheel,t_wheel);
 %     torque_torquers = cat(2,torque_torquers, t_torquers);
-%     Dipole= cat(2,Dipole,D);
+    Dipole= cat(2,Dipole,dipole_bdot);
     
 %     determinant = cat(2,determinant,deter);
 %     rot_energy = cat(2,rot_energy,Trot);
 %     quaternion_check = cat(2,quaternion_check,f_quat);
+
+%     EPSILON = cat(2,EPSILON,quaternion_plot);
+    Triad = cat(2,Triad,Triad_out);
     
 
 end
+% plot(time,Dipole);
+plot(Time,Triad);
 % figure(1);
 % plot(time,torque_wheel);
 % xlabel('wheel');
@@ -122,7 +147,9 @@ end
 % figure(2);
 % plot(time,torque_torquers);
 % xlabel('torquers');
+
 plotting;
+
 % figure(1);
 % plot(time,determinant);
 % xlabel('determinant');

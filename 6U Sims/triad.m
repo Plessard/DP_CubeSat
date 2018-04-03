@@ -1,12 +1,22 @@
-function [Cba, accuracy] = triad(attitude,sa,sb,ma,mb) 
+% function [Cba, accuracy] = triad(attitude,sa,sb,ma,mb) 
+function [q] = triad(attitude,sa,sb,ma,mb) 
+
     % sa, ma --> inertial frame sun and magnetic field vectors respectively
     % sb, mb --> body frame sun and magnetic field vectors respectively
 
     % add white guassian noise to measured values
     % awgn(<vector>,<snr>)
     % <snr>: signal-to-noise ratio in dB
-    sb = awgn(sb,15);
-    mb = awgn(mb,15);
+    
+%     sb = awgn(sb,25,'measured');
+
+   % add white gaussian noise to magmetometer
+    %mb = awgn(mb,20,'measured');
+    % add noise to sun sensor
+%     noiseSigma_s = 0.06 * sb;
+%     noise_s = noiseSigma_s .* randn(3,1);
+%     sb = sb + noise_s;
+    
 
     %normalize body frame vectors (measured values)
     sb = sb/norm(sb);
@@ -28,11 +38,12 @@ function [Cba, accuracy] = triad(attitude,sa,sb,ma,mb)
 
     % Cba*FA = FB
     Cba = FB*(FA');
+    q = dcm2quat(Cba);
 
     % check accuracy
     % what is the measured attitude relative to known attitude
-    Cb2true = Cba*attitude';
-    prv = dcm2prv(Cb2true);
-
-    accuracy = norm(prv)*180/pi;
+%     Cb2true = Cba*attitude';
+%     prv = dcm2prv(Cb2true);
+% 
+%     accuracy = norm(prv)*180/pi;
 end
